@@ -1,135 +1,89 @@
 # Enhanced Stash Player
 
-A [Stash](https://github.com/stashapp/stash) UI plugin that adds two things to the scene player:
+A [Stash](https://github.com/stashapp/stash) plugin that adds two things to the scene player:
 
-- **Starts At**: a start time for each scene. Playback jumps there automatically, and a "Skip intro"
-  button jumps there by hand.
-- **Watch trends**: a faint graph above the seek bar that shows how much each part of the scene has
-  been played, like YouTube's "most replayed".
+- **Starts At:** set a start time for any scene, and playback jumps past the intro automatically. A
+  **Skip intro** button handles the cases where it doesn't jump.
+- **Watch trends:** a faint graph above the seek bar shows which parts of a scene get played the
+  most, like YouTube's "most replayed".
 
-It is JavaScript and CSS only: no Python, no backend and no dependencies. It needs **Stash v0.31.0
-or newer**, because it stores its data in scene custom fields.
+**No Python, no backend, no dependencies.** It's plain JavaScript and CSS that runs in your browser.
+There's nothing to install on the server, no AI model and nothing to download. Its data is stored in
+Stash's own scene custom fields, so it's included in Stash's normal backups.
+
+Requires **Stash v0.31.0 or newer**.
 
 ## Install
 
-1. In Stash, open **Settings → Plugins → Available Plugins → Add Source**.
-2. Add one of these sources:
-   - Stable: `https://undefinednull8080.github.io/enhanced-stash-player/stable/index.yml`
-   - Dev (builds from `main`): `https://undefinednull8080.github.io/enhanced-stash-player/dev/index.yml`
-3. Install **Enhanced Stash Player** from that source, then reload the browser tab.
-
-To install by hand, copy the `enhanced-stash-player/` folder into your Stash `plugins` directory
-and reload the plugins.
+1. In Stash, go to **Settings → Plugins → Available Plugins → Add Source**, and add:
+   ```
+   https://undefinednull8080.github.io/enhanced-stash-player/stable/index.yml
+   ```
+2. Install **Enhanced Stash Player**.
+3. **Refresh the browser tab.** Stash loads plugin scripts only when the page loads.
 
 ## Use
 
-- **Set a start:** play to the right moment and click the flag button in the player's control bar.
-  A toast confirms the time ("Start set to 1:23") and offers Undo.
-- **Clear the start:** long-press or right-click the flag.
-- **Auto-jump:** the plugin jumps only when all of these are true:
-  - playback starts in the first 15 seconds
-  - playback starts before the start time
-  - you have not seeked yourself (a `?t=` link, a marker click or a seek-bar click counts as
-    your own seek)
+- **Set a start:** play to where the scene really starts, then click the **flag** in the player's
+  control bar, just left of fullscreen. A toast confirms the time and offers Undo.
+- **Clear it:** long-press or right-click the flag.
+- **Auto-jump:** when you start playing, the player jumps to the start. It doesn't jump when:
+  - you resume past the start
+  - you seek yourself (a seek-bar click, a marker or a `?t=` link)
+  - playback starts more than 15 s in
 
-  A resume point past the start wins. A toast ("Skipped to 1:23") offers Undo. This also applies
-  when a queue moves to the next scene.
-- **Skip intro:** this button appears before the start time when no auto-jump happened (or it
-  was undone). It comes back if you return to the intro.
-- **Graph:** it appears above the seek bar once a scene has any watch data, and only while the
-  controls are visible. It never blocks seeking. A small tick marks the start time.
+  The jump also applies when a queue moves to the next scene.
+- **Skip intro:** appears before the start time whenever no jump happened.
+- **Graph:** appears once a scene has been watched, shown with the player controls. A small tick
+  marks the start time.
 
 ## Settings
 
-All settings are off by default. Change them in **Settings → Plugins → Enhanced Stash Player**, then
-reload the page.
+**Settings → Plugins → Enhanced Stash Player**. Everything is on by default; refresh after
+changing a setting.
 
-| Setting | Default | Effect |
-| --- | --- | --- |
-| Don't jump to Starts At | off | No automatic jump. Skip intro still works |
-| Lead-in (seconds) | 0 | Jump this many seconds before the start (0–60) |
-| Hide the watch graph | off | No graph |
-| Don't record watching | off | No counting and no saving of watch data from this browser |
+| Setting | Effect |
+| --- | --- |
+| Don't jump to Starts At | Turns off the automatic jump; Skip intro still works |
+| Lead-in (seconds) | Jumps this many seconds before the start (0–60, default 0) |
+| Hide the watch graph | Hides the graph |
+| Don't record watching | This browser stops counting and saving what it plays |
 
-## How it works
+## Good to know
 
-- **Starts At** is saved in the scene custom field `esp_start_at`, as a number of seconds.
-- **Watch counts:** each scene is split into 200 equal parts. While a scene plays at normal speed,
-  the plugin adds each second of playback to the parts it covered. A jump of more than 1.5 s is a
-  seek and is not counted. Our own jumps are never counted either.
-- **Where counts are saved:** each browser keeps its counts in its own custom field,
-  `esp_watch_<id>`. The id is a random 8-character value stored in that browser.
-- **When counts are saved:** on pause (after a short wait, so a click on the seek bar does not
-  save), on end, when leaving the scene and when the tab is hidden. When the tab closes, one last
-  save goes out with `keepalive`. Opening a scene can also save once, to pick up counts that a
-  closed or crashed tab left behind (or a closing save that did not arrive). Nothing is saved when
-  nothing new was played.
-- **Several tabs:** tabs of one browser take turns through a lock in localStorage, so counts from
-  several tabs add up instead of overwriting each other.
-- **The graph** sums every `esp_watch_*` field on the scene, smooths it and scales it.
+- **Where the data lives:** Starts At is the scene custom field `esp_start_at`. Each browser saves
+  its counts in its own `esp_watch_<id>` field, and the graph adds them up. Delete these fields in
+  the scene editor to reset a scene.
+- **Several tabs and devices:** they can watch the same scene at once without losing counts.
+- **When counts are saved:** on pause, at the end of the scene, when you leave it, and when the tab
+  closes or goes to the background. Each save updates the scene's "updated" time and runs other
+  plugins' scene-update hooks. To turn saving off, use Don't record watching.
+- **The scene edit form:** saving it writes back every custom field as it was when the form opened.
+  A Starts At set after you opened the form can be lost. This browser's watch counts restore
+  themselves on its next save.
+- **Private windows:** each one gets a new id, so it leaves its own `esp_watch_` field.
+- **Replaced files:** if a scene's file is replaced with a different cut, the old counts no longer
+  line up.
 
-## Known limits
+## Troubleshooting
 
-- Saving the scene edit form writes back all custom fields as they were when the form loaded. That
-  can overwrite `esp_` values changed in the meantime. This browser restores its own counts on its
-  next save; a Starts At set after the form was opened may be lost.
-- Every save bumps the scene's `updated_at` and runs other plugins' scene update hooks.
-- Each private or incognito window gets a new browser id, so it leaves its own `esp_watch_*` field.
-- Other devices see new counts only after this browser saves them.
-- If a scene's file is replaced with a different cut, the old counts no longer line up.
-- Settings are read once per page load.
+No flag in the player? Refresh the page, then open the browser console (Cmd+Option+J or Ctrl+Shift+J).
+When the plugin works, you'll see:
+
+```
+[ESP] Enhanced Stash Player 0.1.0 loaded (Stash v0.31.1)
+[ESP] attached to scene 123
+```
+
+If something is wrong, an `[ESP]` warning there says why, for example a Stash version that's too
+old. If there's no `[ESP]` line at all, the plugin's script didn't load. Check that the plugin is
+enabled, and that Troubleshooting Mode is off.
 
 ## Development
 
-You need Node.js 20+ for the tests and build, and Docker for a local Stash.
-
-```sh
-npm test          # unit tests (node --test, no dependencies)
-npm run check     # manifest check: allowed keys only, one .yml, listed files exist
-npm run build     # dev build into dist/dev/ (enhanced-stash-player.zip + index.yml)
-npm run stash     # Stash v0.31.1 on http://localhost:9999, configured, with a test clip scanned
-npm run e2e       # Playwright end-to-end tests against that Stash (starts and stops it)
-docker compose down
-```
-
-`npm test` runs `node --test tests/*.test.mjs`. Plain `node --test` works too; `node --test tests/`
-does not on Node 22, which reads a directory argument as a module name.
-
-The plugin folder is mounted straight into the container, so after an edit you only need to reload
-the plugins in Stash (**Settings → Plugins → Reload plugins**) and refresh the page. Stash state goes
-to `tests/e2e/.stash/`, and media goes to `tests/e2e/media/`. Both are gitignored. `npm run stash`
-writes a `config.yml` there on first run so Stash skips its setup wizard, makes a 120 s VP8/Opus test
-clip with the container's ffmpeg, scans it and reloads the plugins.
-
-### End-to-end tests
-
-`npm run e2e` installs `@playwright/test` and Chromium into `tests/e2e/`, starts Stash, runs
-`tests/e2e/player.spec.mjs` and runs `docker compose down` at the end. Set `ESP_E2E_KEEP=1` to leave
-Stash running. The tests cover: no console errors from the plugin, the flag saving `esp_start_at`,
-reload + play jumping (and the jump not being counted), Undo and Skip intro, play + pause writing
-`esp_watch_<id>`, two tabs counting at once with nothing lost, the graph and its tick, and the
-`pagehide` keepalive save landing and being confirmed on the next load. Playback is muted and
-Chromium runs with `--autoplay-policy=no-user-gesture-required`. The clip is WebM because
-Playwright's Chromium has no H.264.
-
-### Releasing
-
-Every push to `main` publishes the dev channel to GitHub Pages. To release, push a tag:
-`git tag v0.1.0 && git push origin v0.1.0`. The stable channel is built from the newest `v*` tag,
-with the version taken from the tag. Both channels are rebuilt on every deploy.
-
-Layout:
-
-- `enhanced-stash-player/`: the plugin, shipped as-is.
-  - `esp-core.js` holds the pure helpers. The node tests load it too.
-  - `esp-main.js` handles wiring and loads last.
-  - `esp-starts-at.js`, `esp-tracker.js` and `esp-graph.js` are the feature modules.
-  - `enhanced-stash-player.css` holds all styles.
-- `scripts/`: `build.mjs` (zip + index.yml per channel) and `check-manifest.mjs`.
-- `tests/`: unit tests. `tests/e2e/`: Playwright tests and the Docker Stash helpers.
-- `docs/PLAN.md`: the spec.
-- `docs/CONTRACT.md`: the interfaces between modules.
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for tests, the local Docker Stash, releasing and how
+it works.
 
 ## License
 
-The Unlicense. See `LICENSE`.
+The Unlicense (public domain). See [LICENSE](LICENSE).

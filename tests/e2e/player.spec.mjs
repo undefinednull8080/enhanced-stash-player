@@ -99,7 +99,13 @@ function expectCounted(fields, from, to) {
 
 test("plugin loads and plays a scene with no console errors", async ({ page }) => {
   const errors = watchConsole(page);
+  const infos = [];
+  page.on("console", (m) => {
+    if (m.type() === "info" && m.text().startsWith("[ESP]")) infos.push(m.text());
+  });
   await openScene(page);
+  expect(infos).toContainEqual(expect.stringMatching(/^\[ESP\] Enhanced Stash Player \S+ loaded \(Stash v\d/));
+  expect(infos).toContain("[ESP] attached to scene " + id);
   await expect(page.locator(".video-js .esp-flag")).toHaveCount(1);
   await expect(page.locator(".video-js .esp-skip-intro")).toBeHidden();
   await playUntil(page, 2);

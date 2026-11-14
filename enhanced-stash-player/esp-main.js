@@ -11,6 +11,7 @@
 
   const SETTINGS_QUERY = "query EspSettings { configuration { plugins(include: [\"" + core.PLUGIN_ID + "\"]) } }";
   const VERSION_QUERY = "query EspVersion { version { version } }";
+  const PLUGIN_QUERY = "query EspPlugin { plugins { id version } }";
   const SCENE_QUERY = "query EspScene($id: ID!) { findScene(id: $id) { id custom_fields files { duration } } }";
   const FIELDS_QUERY = "query EspSceneFields($id: ID!) { findScene(id: $id) { id custom_fields } }";
   const UPDATE_MUTATION =
@@ -20,6 +21,7 @@
   const storage = createStorage();
   let initPromise = null;
   let browserId = null;
+  let stashVersion = null;
   let activeSceneId = null; // scene we are attached to or attaching to
   let generation = 0; // bumped on every enter/leave so stale async work can bail
   let current = null; // { ctx, detaches, offDispose }
@@ -182,6 +184,7 @@
       .then((data) => data.version.version)
       .catch(() => null)
       .then((version) => {
+        stashVersion = version;
         if (core.isSupportedVersion(version)) return true;
         const msg = "Enhanced Stash Player needs Stash " + core.MIN_VERSION + " or newer (found " + version + ").";
         console.warn("[ESP] " + msg);
@@ -190,9 +193,18 @@
       });
   }
 
+  function pluginVersion() {
+    return gql(PLUGIN_QUERY)
+      .then((data) => (data.plugins.find((p) => p.id === core.PLUGIN_ID) || {}).version || "unknown")
+      .catch(() => "unknown");
+  }
+
   function init() {
     if (!initPromise) {
-      initPromise = Promise.all([checkVersion(), loadSettings()]).then(([ok, settings]) => (ok ? settings : null));
+      initPromise = Promise.all([checkVersion(), loadSettings(), pluginVersion()]).then(([ok, settings, version]) => {
+        if (ok) console.info("[ESP] Enhanced Stash Player " + version + " loaded (Stash " + stashVersion + ")");
+        return ok ? settings : null;
+      });
     }
     return initPromise;
   }
@@ -352,7 +364,12 @@
         return null;
       }),
     ]);
-    if (gen !== generation || !player || !data || !data.findScene) return;
+    if (gen !== generation) return;
+    if (!player) {
+      console.warn("[ESP] no video player found on scene " + sceneId + " within " + PLAYER_TIMEOUT_MS / 1000 + " s");
+      return;
+    }
+    if (!data || !data.findScene) return;
     if (!(await waitForSource(player, sceneId, gen))) {
       // The player was rebuilt while we waited: start over with the new one.
       if (gen === generation) {
@@ -370,6 +387,7 @@
     };
     player.one("dispose", onDispose);
     current = { ctx, detaches: attachModules(ctx), offDispose: () => player.off("dispose", onDispose) };
+    console.info("[ESP] attached to scene " + sceneId);
   }
 
   function sceneIdFromPath(pathname) {

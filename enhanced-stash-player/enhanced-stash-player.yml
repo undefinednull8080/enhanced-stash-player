@@ -1,5 +1,5 @@
 name: Enhanced Stash Player
-description: "Per-scene Starts At (auto-jump past intros, Skip intro button) and a watch trends graph above the seek bar. Requires Stash v0.31.0 or newer."
+description: "Per-scene Starts At (auto-skip intros, Skip intro button) and a watch trends graph above the seek bar. Plain JavaScript: no Python, no dependencies. Requires Stash v0.31.0 or newer."
 version: 0.1.0
 url: https://github.com/undefinednull8080/enhanced-stash-player
 ui:
