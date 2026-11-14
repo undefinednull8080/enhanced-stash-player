@@ -1,0 +1,30 @@
+name: Enhanced Stash Player
+description: "Per-scene Starts At (auto-jump past intros, Skip intro button) and a watch trends graph above the seek bar. Requires Stash v0.31.0 or newer."
+version: 0.1.0
+url: https://github.com/undefinednull8080/enhanced-stash-player
+ui:
+  javascript:
+    - esp-core.js
+    - esp-starts-at.js
+    - esp-tracker.js
+    - esp-graph.js
+    - esp-main.js
+  css:
+    - enhanced-stash-player.css
+settings:
+  disableAutoJump:
+    displayName: "Don't jump to Starts At"
+    description: "Never jump automatically to a scene's Starts At time. The Skip intro button still works."
+    type: BOOLEAN
+  leadIn:
+    displayName: "Lead-in (seconds)"
+    description: "Jump this many seconds before Starts At (0 to 60, default 0)."
+    type: NUMBER
+  hideGraph:
+    displayName: "Hide the watch graph"
+    description: "Do not show the watch trends graph above the seek bar."
+    type: BOOLEAN
+  disableTracking:
+    displayName: "Don't record watching"
+    description: "Do not count or save which parts of scenes this browser plays."
+    type: BOOLEAN

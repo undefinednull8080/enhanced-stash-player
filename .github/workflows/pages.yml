@@ -1,0 +1,72 @@
+name: Pages
+
+# Publishes both plugin sources on every run, so one channel never deletes the other:
+#   stable/index.yml  from the newest v* tag
+#   dev/index.yml     from main
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/configure-pages@v5
+
+      # The build script from this checkout packages each ref's plugin folder from a worktree.
+      - name: Build dev from main
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/dev" origin/main
+          node scripts/build.mjs --channel dev --repo "$RUNNER_TEMP/dev" --out _site
+
+      - name: Build stable from the newest v* tag
+        run: |
+          tag=$(git -c versionsort.suffix=- tag --list 'v*' --sort=-version:refname | head -n 1)
+          if [ -z "$tag" ]; then
+            echo "No v* tag yet: publishing dev only."
+            exit 0
+          fi
+          git worktree add --detach "$RUNNER_TEMP/stable" "$tag"
+          node scripts/build.mjs --channel stable --repo "$RUNNER_TEMP/stable" --version "${tag#v}" --out _site
+
+      - name: Check the packages
+        run: |
+          for index in _site/*/index.yml; do
+            dir=$(dirname "$index")
+            unzip -tq "$dir/enhanced-stash-player.zip"
+            echo "$(grep -o '[0-9a-f]\{64\}' "$index")  $dir/enhanced-stash-player.zip" | sha256sum -c -
+            cat "$index"
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

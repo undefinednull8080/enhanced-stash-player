@@ -1,0 +1,19 @@
+# Local dev and e2e Stash with the plugin folder mounted. Open http://localhost:9999
+services:
+  stash:
+    image: stashapp/stash:v0.31.1
+    ports:
+      - "9999:9999"
+    environment:
+      - STASH_STASH=/data/
+      - STASH_GENERATED=/generated/
+      - STASH_METADATA=/metadata/
+      - STASH_CACHE=/cache/
+      - STASH_PORT=9999
+    volumes:
+      - ./tests/e2e/.stash/config:/root/.stash
+      - ./tests/e2e/.stash/generated:/generated
+      - ./tests/e2e/.stash/metadata:/metadata
+      - ./tests/e2e/.stash/cache:/cache
+      - ./tests/e2e/media:/data
+      - ./enhanced-stash-player:/root/.stash/plugins/enhanced-stash-player:ro

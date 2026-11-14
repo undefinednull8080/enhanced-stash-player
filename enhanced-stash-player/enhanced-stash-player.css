@@ -1,0 +1,140 @@
+/* Enhanced Stash Player styles: shared toasts, Starts At controls and the watch graph. */
+
+/* ---- toasts (used by ctx.toast) and Starts At ---- */
+
+.esp-toasts {
+  position: absolute;
+  left: 50%;
+  bottom: 4.5em;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.esp-toasts--page {
+  position: fixed;
+  bottom: 1.5em;
+}
+
+.esp-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.45em 0.9em;
+  border-radius: 4px;
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.esp-toast-undo {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8ab4f8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.esp-toast-undo:hover {
+  text-decoration: underline;
+}
+
+/* Starts At flag in the control bar */
+
+.video-js .esp-flag {
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.video-js .esp-flag .vjs-icon-placeholder,
+.video-js .esp-flag > .esp-flag-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.video-js .esp-flag-icon {
+  width: 1.6em;
+  height: 1.6em;
+}
+
+.video-js .esp-flag-pole {
+  fill: currentColor;
+}
+
+.video-js .esp-flag-cloth {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.video-js .esp-flag--set {
+  color: #8ab4f8;
+}
+
+.video-js .esp-flag--set .esp-flag-cloth {
+  fill: currentColor;
+}
+
+/* Skip intro, over the video above the control bar */
+
+.video-js .esp-skip-intro {
+  position: absolute;
+  right: 1.5em;
+  bottom: 5em;
+  z-index: 1050;
+  padding: 0.55em 1.2em;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  background: rgba(20, 20, 20, 0.75);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.video-js .esp-skip-intro:hover,
+.video-js .esp-skip-intro:focus-visible {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+.video-js .esp-skip-intro[hidden] {
+  display: none;
+}
+
+/* ---- watch graph: lives inside .vjs-control-bar, so it fades with it ---- */
+
+.video-js .esp-graph {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.video-js .esp-graph--empty {
+  display: none;
+}
+
+.video-js .esp-graph-area {
+  fill: rgba(255, 255, 255, 0.25);
+}
+
+.video-js .esp-graph-tick {
+  fill: rgba(255, 255, 255, 0.85);
+}

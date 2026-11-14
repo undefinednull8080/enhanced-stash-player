@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+
+# e2e: generated media and the throwaway Stash state
+tests/e2e/media/
+tests/e2e/.stash/
+test-results/
+playwright-report/

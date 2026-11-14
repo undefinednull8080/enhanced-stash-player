@@ -1,0 +1,15 @@
+{
+  "name": "enhanced-stash-player-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Playwright tests against the Docker Stash in ../../docker-compose.yml.",
+  "license": "Unlicense",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "install-browser": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
