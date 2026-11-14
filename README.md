@@ -7,6 +7,8 @@ A [Stash](https://github.com/stashapp/stash) plugin that adds two things to the 
 - **Watch trends:** a faint graph above the seek bar shows which parts of a scene get played the
   most, like YouTube's "most replayed".
 
+![The Stash player's control bar: the watch graph rises above the left end of the seek bar, and the flag button just left of fullscreen marks the start](docs/images/player-controls.png)
+
 **No Python, no backend, no dependencies.** It's plain JavaScript and CSS that runs in your browser.
 There's nothing to install on the server, no AI model and nothing to download. Its data is stored in
 Stash's own scene custom fields, so it's included in Stash's normal backups.
